@@ -1,0 +1,29 @@
+---
+- name: Global Settings in VM Company in Debian
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Validate the sudoers file before saving
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%alex ALL='
+        line: 'alex ALL=(ALL) NOPASSWD: ALL'
+        validate: /usr/sbin/visudo -cf %s
+
+
+    - name: Add data in resolv.conf
+      ansible.builtin.shell: echo "nameserver 192.168.1.254" >> /etc/resolv.conf
+
+    - name: Copy file
+      ansible.builtin.copy:
+        src: /home/alex/ansible/resolv.sh
+        dest: /tmp/resolv.sh
+        owner: root
+        group: root
+        mode: u=rwx,g=rwx,o=rwx
+
+    - name: Add data in hosts
+      ansible.builtin.shell: /tmp/resolv.sh
