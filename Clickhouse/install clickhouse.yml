@@ -1,0 +1,47 @@
+---
+- name: Install PostgreSQL on the Debian Family
+  hosts: db
+  become: yes
+
+  tasks:
+    - name: Disable swap
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: Remove swap entry from fstab
+      mount:
+        name: none
+        fstype: swap
+        state: absent
+
+    - name: Install Clickhouse dependency
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download GPG Key
+      ansible.builtin.shell: curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg ->
+
+    - name: Add Repository
+      ansible.builtin.shell: ARCH=$(dpkg --print-architecture) && echo "deb [signed-by=/usr/share/keyrings/clickhouse->
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache=yes
+
+    - name: Install Clickhouse and update cash apt
+      ansible.builtin.apt:
+        pkg:
+          - clickhouse-server
+          - clickhouse-client
+        state: present
+
+    - name: Run service Clickhouse and Enable
+      ansible.builtin.service:
+        name=clickhouse-server
+        state=started
+        enabled=yes
