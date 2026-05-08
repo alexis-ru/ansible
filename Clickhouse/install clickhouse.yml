@@ -1,5 +1,5 @@
 ---
-- name: Install PostgreSQL on the Debian Family
+- name: Install Clickhouse
   hosts: db
   become: yes
 
@@ -14,34 +14,72 @@
         fstype: swap
         state: absent
 
-    - name: Install Clickhouse dependency
-      ansible.builtin.apt:
-        pkg:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - gnupg
-        state: present
+    - name: Reboot systems
+      ansible.builtin.reboot:
 
-    - name: Download GPG Key
-      ansible.builtin.shell: curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg ->
+    - block: ## Debian Family ##
+        - name: Install Clickhouse dependency on Debian
+          ansible.builtin.apt:
+            pkg:
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - gnupg
+            state: present
+          when: ansible_os_family == "Debian"
 
-    - name: Add Repository
-      ansible.builtin.shell: ARCH=$(dpkg --print-architecture) && echo "deb [signed-by=/usr/share/keyrings/clickhouse->
+        - name: Download GPG Key
+          ansible.builtin.shell: curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | su>
+          when: ansible_os_family == "Debian"
 
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache=yes
+        - name: Add Repository
+          ansible.builtin.shell: ARCH=$(dpkg --print-architecture) && echo "deb [signed-by=/usr/share/keyrings/cli>
+          when: ansible_os_family == "Debian"
 
-    - name: Install Clickhouse and update cash apt
-      ansible.builtin.apt:
-        pkg:
-          - clickhouse-server
-          - clickhouse-client
-        state: present
+        - name: Update apt cache
+          ansible.builtin.apt:
+            update_cache=yes
+          when: ansible_os_family == "Debian"
 
-    - name: Run service Clickhouse and Enable
-      ansible.builtin.service:
-        name=clickhouse-server
-        state=started
-        enabled=yes
+        - name: Install Clickhouse and update cash apt
+          ansible.builtin.apt:
+            pkg:
+              - clickhouse-server
+              - clickhouse-client
+            state: present
+          when: ansible_os_family == "Debian"
+
+        - name: Run service Clickhouse and Enable on Debian
+          ansible.builtin.service:
+            name=clickhouse-server
+            state=started
+            enabled=yes
+          when: ansible_os_family == "Debian"
+
+    - block: ## RedHat Family ##
+        - name: Install Clickhouse dependency on RedHat
+          ansible.builtin.yum:
+            name=yum-utils
+            state=present
+          when: ansible_os_family == "RedHat"
+
+        - name: Install Clickhouse repository on RedHat
+          ansible.builtin.shell: yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
+          when: ansible_os_family == "RedHat"
+
+        - name: Install Clickhouse dependency on RedHat
+          ansible.builtin.yum:
+            name: "{{ packages }}"
+          vars:
+            packages:
+              - clickhouse-server
+              - clickhouse-client
+            state: present
+          when: ansible_os_family == "RedHat"
+
+        - name: Run service Clickhouse and Enable on RedHat
+          ansible.builtin.service:
+            name=clickhouse-server
+            state=started
+            enabled=yes
+          when: ansible_os_family == "RedHat"
