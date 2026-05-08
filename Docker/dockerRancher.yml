@@ -1,0 +1,95 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+    user: user1
+
+  tasks:
+    - name: Install depends package
+      ansible.builtin.yum:
+        name:
+          - ca-certificates curl
+          - curl
+        state: latest
+        update_cache: true
+
+    - name: Run multi-line shell commands
+      ansible.builtin.shell: |
+        sudo install -m 0755 -d /etc/apt/keyrings
+        sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+        sudo chmod a+r /etc/apt/keyrings/docker.asc
+      executable: /bin/bas
+
+    - name: Create an repo-file from Docker-CE
+      ansible.builtin.shell: |
+        sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+        Types: deb
+        URIs: https://download.docker.com/linux/debian
+        Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+        Components: stable
+        Architectures: $(dpkg --print-architecture)
+        Signed-By: /etc/apt/keyrings/docker.asc
+        EOF
+      executable: /bin/bash
+
+    - name: Install Docker-CE and dependency
+      ansible.builtin.apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: If exists 'docker' group
+      ansible.builtin.getent:
+        database=group
+        key=docker
+        fail_key=false
+      register: docker_group_check
+
+    - name: Add user to 'docker' group
+      ansible.builtin.user:
+        name={{ user }}
+        groups=docker
+        append=true
+      when: "'docker' in ansible_facts.getent_group"
+
+    - name: Reset connection
+      ansible.builtin.meta: reset_connection
+      when: docker_group_check.changed
+
+    - name: Change permitions Docker directory
+      ansible.builtin.shell: |
+        mkdir /home/"$USER"/.docker
+        sudo chown "$USER":"$USER" /home/"$USER"/.docker -R
+        sudo chmod g+rwx "$HOME/.docker" -R
+      executable: /bin/bash
+
+    - name: Start Docker service
+      service:
+        name: docker.service
+        state: started
+        enabled: yes
+      become: yes
+
+    - name: Start Container service
+      service:
+        name: containerd.service
+        state: started
+        enabled: yes
+      become: yes
+
+    - name: Install kubectl
+      ansible.builtin.shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        chmod +x kubectl
+        mkdir -p ~/.local/bin
+        mv ./kubectl ~/.local/bin/kubectl
+      executable: /bin/bash
+
+    - name: Run Docker container with stanalone Rancher
+      command: docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher:latest --no-cacerts

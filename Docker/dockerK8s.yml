@@ -26,7 +26,7 @@
 
     - name: Create an config-file in Kind
       ansible.builtin.copy:
-        dest: /path/to/your/file.txt
+        dest: /home/"$USER"/config.yaml
         owner: ansible
         group: ansible
         mode: '0644'
@@ -40,4 +40,13 @@
           - role: worker
 
     - name: Run Kind with config-file in Debian
-      command: kind create cluster --name my-cluster --config=config.yaml
+      command: kind create cluster --name my-cluster --config=/home/"$USER"/config.yaml
+
+    - name: Install kubectl
+      ansible.builtin.shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        chmod +x kubectl
+        mkdir -p ~/.local/bin
+        mv ./kubectl ~/.local/bin/kubectl
+      executable: /bin/bash
