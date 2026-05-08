@@ -1,0 +1,43 @@
+---
+- name: Install test Cluster K8s in Debian
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache=yes
+
+    - name: Install Golang in Debian
+      ansible.builtin.yum:
+        name:
+          - golang
+        state: present
+
+    - name: Install Kind in Debian
+      command: go install sigs.k8s.io/kind@v0.31.0
+
+    - name: Add variable in .bashrc
+      ansible.builtin.blockinfile:
+        path: ~/.bashrc
+        block: |
+          export PATH=$PATH:/usr/local/go/bin
+          export PATH=$PATH:$(go env GOPATH)/bin
+
+    - name: Create an config-file in Kind
+      ansible.builtin.copy:
+        dest: /path/to/your/file.txt
+        owner: ansible
+        group: ansible
+        mode: '0644'
+        content: |
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+          - role: control-plane
+          - role: worker
+          - role: worker
+          - role: worker
+
+    - name: Run Kind with config-file in Debian
+      command: kind create cluster --name my-cluster --config=config.yaml
