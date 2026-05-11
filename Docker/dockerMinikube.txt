@@ -1,0 +1,66 @@
+Установить Docker-CE, kubectl
+
+##############################
+### Устанавливаем Minikube ###
+##############################
+
+apt update -y && apt install curl sudo -y && sudo sh -c "echo '$USER ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers" && sudo sed -i '/swap/ s/^/#/' /etc/fstab && sudo /usr/sbin/reboot
+
+
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mkdir -p /usr/local/bin/ && sudo mv minikube /usr/local/bin/
+
+minikube start --cni=docker --cpus=2 --memory=3g --dns-domain=cluster.local --nodes=3 - 3-х нодовый кластер с ресурсами по 2 ядра и 3Гб ОЗУ
+
+minikube start --vm-driver=docker - по умолчанию однонодовый кластер Кубера
+
+
+
+################################################
+### Устанавливаем доп. компоненты в Minikube ###
+################################################
+
+minikube addons list
+
+minikube addons enable dashboard
+
+minikube dashboard --url
+---> http://127.0.0.1:36685/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
+Консоль №2
+kubectl proxy --address='IP host' --disable-filter=true
+
+host ---> http://IP host:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/#/node?namespace=_all
+
+
+
+###################################
+### Добавляем сущности в Кубере ###
+###################################
+
+kubectl apply -f https://k8s.io/examples/pods/simple-pod.yaml
+
+kubectl apply -f https://k8s.io/examples/controllers/nginx-deployment.yaml
+
+kubectl scale deployment/nginx-deployment --replicas=10
+
+
+
+###########################################
+### Смотрим ноды и ресурсы нод Minikube ###
+###########################################
+
+kubectl get node
+
+kubectl top node
+
+kubectl top node <Node_Name>
+
+
+
+##############################################################
+### Смотрим подики и распределение подов по нодам Minikube ###
+##############################################################
+
+kubectl get pods -A -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName  --sort-by=.spec.nodeName
+
+kubectl get pods -o wide --sort-by=.spec.nodeName
