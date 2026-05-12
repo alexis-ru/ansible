@@ -1,0 +1,7 @@
+# Role by Alexey Shipulin
+---
+# vars file for postgres
+db_name: db1
+db_user: user1
+db_pass: My_passwd
+postgres_pass: My_password

@@ -1,0 +1,10 @@
+---
+- name: Install Roles
+  hosts: all
+  become: yes
+
+  roles:
+    - role: postgres
+      tags: pg
+    - role: clickhouse
+      tags: click

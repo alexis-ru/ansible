@@ -1,0 +1,44 @@
+# Role by Alexey Shipulin
+---
+# tasks file for postgres
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache=yes
+
+- name: Install PostgreSQL and update cash apt
+  ansible.builtin.apt:
+    pkg:
+      - postgresql
+      - python3-pip
+      - python3-psycopg2
+    state: present
+
+- name: Ensure PostgreSQL is running
+  ansible.builtin.service:
+    name=postgresql
+    state=started
+    enabled=yes
+
+- name: Set password for postgres user
+  command: sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_pass }}';"
+
+- name: Delete DB
+  command: sudo -u postgres psql -c "DROP DATABASE {{ db_name }};"
+  ignore_errors: yes
+
+- name: Delete DB
+  command: sudo -u postgres psql -c "DROP ROLE {{ db_user }};"
+  ignore_errors: yes
+
+- name: Create a new user and set password
+  command: sudo -u postgres psql -c "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '{{ db_user }}') THEN CREATE ROLE {{ db_user }} WITH LOGIN PASSWORD '{{ db_pass }}'; END IF; END $$;"
+
+- name: Add Priveleges
+  command: sudo -u postgres psql -c "ALTER USER {{ db_user }} CREATEROLE CREATEDB;"
+
+- name: Create a new database
+  command: sudo -u postgres psql -c "CREATE DATABASE {{ db_name }};"
+
+- name: Settings owner a new database
+  command: sudo -u postgres psql -c "ALTER DATABASE {{ db_name }} OWNER TO {{ db_user }};"
