@@ -14,6 +14,9 @@
 4.3. Docker\dockerMinikube.txt - добавил инструкцию по установке мультинодового кластера Кубера при помощи Minikube
 5. OS - плейбук для настройки некоторых параметров операционной системы
 6. Clickhouse - плейбук для установки Clickhouse
+7. Roles - роли Postgres/Clickhouse
+7.1. Roles\postgres - Установка СУБД Postgres + создание пользователя, БД и получение прав владельца БД (имя пользователя, пароль и имя БД - можно изменить в переменных роли Roles\postgres\vars\main.yml)
+7.2. Roles\clickhouse - Установка СУБД Clickhouse
 
 
 
