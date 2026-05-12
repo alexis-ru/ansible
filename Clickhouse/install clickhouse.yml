@@ -29,11 +29,11 @@
           when: ansible_os_family == "Debian"
 
         - name: Download GPG Key
-          ansible.builtin.shell: curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | su>
+          ansible.builtin.shell: curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
           when: ansible_os_family == "Debian"
 
         - name: Add Repository
-          ansible.builtin.shell: ARCH=$(dpkg --print-architecture) && echo "deb [signed-by=/usr/share/keyrings/cli>
+          ansible.builtin.shell: ARCH=$(dpkg --print-architecture) && echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg arch=${ARCH}] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
           when: ansible_os_family == "Debian"
 
         - name: Update apt cache
