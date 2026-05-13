@@ -17,6 +17,7 @@
 7. Roles - роли Postgres/Clickhouse
 7.1. Roles\postgres - Установка СУБД Postgres + создание пользователя, БД и получение прав владельца БД (имя пользователя, пароль и имя БД - можно изменить в переменных роли Roles\postgres\vars\main.yml)
 7.2. Roles\clickhouse - Установка СУБД Clickhouse
+7.2. Roles\Redis - Установка СУБД Redis
 
 
 
