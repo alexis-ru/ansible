@@ -15,9 +15,10 @@
 5. OS - плейбук для настройки некоторых параметров операционной системы
 6. Clickhouse - плейбук для установки Clickhouse
 7. Roles - роли Postgres/Clickhouse
-7.1. Roles\postgres - Установка СУБД Postgres + создание пользователя, БД и получение прав владельца БД (имя пользователя, пароль и имя БД - можно изменить в переменных роли Roles\postgres\vars\main.yml)
-7.2. Roles\clickhouse - Установка СУБД Clickhouse
-7.2. Roles\Redis - Установка СУБД Redis
+7.1. Roles\postgres - Установка роли СУБД Postgres + создание пользователя, БД и получение прав владельца БД (имя пользователя, пароль и имя БД - можно изменить в переменных роли Roles\postgres\vars\main.yml)
+7.2. Roles\clickhouse - Установка роли СУБД Clickhouse
+7.2. Roles\Redis - Установка роли СУБД Redis
+8. Redis - плейбук для установки Redis
 
 
 
