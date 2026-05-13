@@ -1,0 +1,54 @@
+# Role by Alexey Shipulin
+---
+# tasks file for redis
+
+- block: ## Debian Family ##
+    - name: Install dependecy Redis on Debian
+      ansible.builtin.apt:
+        pkg:
+          - lsb-release
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download GPG Key
+      ansible.builtin.shell: sudo rm /usr/share/keyrings/redis-archive-keyring.gpg && curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+      ignore_errors: yes
+
+    - name: Adding access rights in GPG Key
+      ansible.builtin.shell: sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+
+    - name: Add Repository Redis
+      ansible.builtin.shell: echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+
+    - name: Update apt cache APT
+      ansible.builtin.apt:
+        update_cache=yes
+        cache_valid_time=3600
+
+    - name: Install Redis on Debian
+      ansible.builtin.apt:
+        name=redis
+        state=present
+
+    - name: Run service Redis and Enable on Debian
+      ansible.builtin.service:
+        name=redis-server
+        state=started
+        enabled=yes
+
+  when: ansible_os_family == "Debian"
+
+- block: ## RedHat Family ##
+    - name: Install Redis on RedHat
+      ansible.builtin.yum:
+        name=redis
+        state=present
+
+    - name: Run service Redis and Enable on RedHat
+      ansible.builtin.service:
+        name=redis
+        state=started
+        enabled=yes
+
+  when: ansible_os_family == "RedHat"

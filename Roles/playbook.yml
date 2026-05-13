@@ -8,3 +8,5 @@
       tags: pg
     - role: clickhouse
       tags: click
+    - role: redis
+      tags: redis

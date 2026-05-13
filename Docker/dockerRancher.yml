@@ -19,7 +19,7 @@
         sudo install -m 0755 -d /etc/apt/keyrings
         sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
         sudo chmod a+r /etc/apt/keyrings/docker.asc
-      executable: /bin/bas
+      executable: /bin/bash
 
     - name: Create an repo-file from Docker-CE
       ansible.builtin.shell: |
