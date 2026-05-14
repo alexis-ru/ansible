@@ -1,0 +1,6 @@
+# Role by Alexey Shipulin
+---
+# vars file for clickhouse
+cl_name: db1
+cl_user: user1
+cl_pass: My_Pa$$wD

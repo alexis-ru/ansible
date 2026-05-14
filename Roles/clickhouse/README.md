@@ -3,6 +3,16 @@ Clickhouse Role
 
 Use this role for deploy clickhouse standalone mode.
 
+Requirements
+------------
+
+Requirements mandatory - determinate variables.
+
+Role Variables
+--------------
+
+Specify variables in directory.
+
 Example Playbook
 ----------------
 

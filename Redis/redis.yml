@@ -1,5 +1,5 @@
 ---
-- name: Install Clickhouse on the Debian Family
+- name: Install Redis on the Debian Family
   hosts: db
   become: yes
 
@@ -14,7 +14,8 @@
             state: present
 
         - name: Download GPG Key
-          ansible.builtin.shell: sudo rm /usr/share/keyrings/clickhouse-keyring.gpg | curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+          ansible.builtin.shell: sudo rm /usr/share/keyrings/redis-archive-keyring.gpg | curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+          ignore_errors: yes
 
         - name: Adding access rights in GPG Key
           ansible.builtin.shell: sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
@@ -29,9 +30,9 @@
         - name: Install Redis on Debian
           ansible.builtin.apt:
             name=redis
-            state: present
+          state: present
 
-        - name: Run service Clickhouse and Enable on Debian
+        - name: Run service Redis and Enable on Debian
           ansible.builtin.service:
             name=redis-server
             state=started
@@ -42,11 +43,12 @@
         - name: Install Redis on Debian
           ansible.builtin.yum:
             name=redis
-            state: present
+          state: present
 
-        - name: Run service Clickhouse and Enable on Debian
+        - name: Run service Redis and Enable on Debian
           ansible.builtin.service:
             name=redis
             state=started
             enabled=yes
+
       when: ansible_os_family == "RedHat"

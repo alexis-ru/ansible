@@ -24,20 +24,16 @@
           - curl
           - gnupg
         state: present
-      when: ansible_os_family == "Debian"
 
     - name: Download GPG Key
       ansible.builtin.shell: sudo rm /usr/share/keyrings/clickhouse-keyring.gpg | curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
-      when: ansible_os_family == "Debian"
 
     - name: Add Repository
       ansible.builtin.shell: ARCH=$(dpkg --print-architecture) && echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg arch=${ARCH}] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
-      when: ansible_os_family == "Debian"
 
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache=yes
-      when: ansible_os_family == "Debian"
 
     - name: Install Clickhouse and update cash apt
       ansible.builtin.apt:
@@ -45,24 +41,23 @@
           - clickhouse-server
           - clickhouse-client
         state: present
-      when: ansible_os_family == "Debian"
 
     - name: Run service Clickhouse and Enable on Debian
       ansible.builtin.service:
         name=clickhouse-server
         state=started
         enabled=yes
-      when: ansible_os_family == "Debian"
+
+  when: ansible_os_family == "Debian"
+
 - block: ## RedHat Family ##
     - name: Install Clickhouse dependency on RedHat
       ansible.builtin.yum:
         name=yum-utils
         state=present
-      when: ansible_os_family == "RedHat"
 
     - name: Install Clickhouse repository on RedHat
       ansible.builtin.shell: yum-config-manager --add-repo https://packages.clickhouse.com/rpm/clickhouse.repo
-      when: ansible_os_family == "RedHat"
 
     - name: Install Clickhouse dependency on RedHat
       ansible.builtin.yum:
@@ -72,11 +67,42 @@
           - clickhouse-server
           - clickhouse-client
         state: present
-      when: ansible_os_family == "RedHat"
 
     - name: Run service Clickhouse and Enable on RedHat
       ansible.builtin.service:
         name=clickhouse-server
         state=started
         enabled=yes
-      when: ansible_os_family == "RedHat"
+
+  when: ansible_os_family == "RedHat"
+
+- block: ## Change in Clickhouse ##
+    - name: Add user in Clickhouse
+      ansible.builtin.shell: |
+        clickhouse-client --query "CREATE USER IF NOT EXISTS {{ cl_user }} IDENTIFIED WITH sha256_password BY '{{ cl_pass }}'"
+
+    - name: Add database in ClickHouse
+      ansible.builtin.shell: |
+        clickhouse-client --query "CREATE DATABASE IF NOT EXISTS {{ cl_name }}"
+
+    - name: Create DataBase
+      ansible.builtin.shell: |
+        clickhouse-client --query "SHOW DATABASES LIKE '{{ cl_name }}'"
+      register: resultDB
+
+    - name: Print return information Create Database
+      ansible.builtin.debug:
+        var: resultDB.stdout_lines
+
+    - name: Add database in ClickHouse
+      ansible.builtin.shell: |
+        clickhouse-client --query "GRANT ALL ON {{ cl_name }}.* TO {{ cl_user}}"
+
+    - name: Grants Rights
+      ansible.builtin.shell: |
+        clickhouse-client --query "SHOW GRANTS FOR {{ cl_user}}"
+      register: resultUser
+
+    - name: Print return information Grants Rights
+      ansible.builtin.debug:
+        var: resultUser.stdout_lines
