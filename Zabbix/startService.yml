@@ -1,5 +1,5 @@
 ---
-- name: Stop service Zabbix-agent
+- name: Start service Zabbix-agent
   ansible.builtin.service:
     name: zabbix-agent
     state: started
